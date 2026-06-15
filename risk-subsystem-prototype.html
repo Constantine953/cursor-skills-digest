@@ -1,0 +1,1995 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>风险子系统前端高保真原型</title>
+  <style>
+    :root {
+      --primary: #4f7cff;
+      --primary-dark: #3267f5;
+      --primary-soft: #edf3ff;
+      --danger: #ff4d4f;
+      --warning: #faad14;
+      --success: #32c48d;
+      --text: #1f2a3d;
+      --muted: #7f8ca3;
+      --line: #edf0f7;
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --shadow: 0 10px 30px rgba(31, 42, 61, 0.06);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      font-size: 13px;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .app {
+      min-width: 1360px;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 180px 1fr;
+    }
+
+    .sidebar {
+      background: #fff;
+      border-right: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      position: relative;
+      z-index: 3;
+    }
+
+    .brand {
+      height: 58px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 18px;
+      color: #667085;
+      font-weight: 600;
+      border-bottom: 1px solid #f2f4f7;
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      color: #2c68ff;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .side-nav {
+      padding: 14px 8px;
+    }
+
+    .nav-group-title {
+      margin: 18px 12px 8px;
+      font-size: 12px;
+      color: #a0aec0;
+    }
+
+    .nav-item {
+      height: 38px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 12px;
+      margin: 3px 0;
+      color: #4b5565;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      color: var(--primary);
+      background: #edf3ff;
+    }
+
+    .nav-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      border: 1px solid #c9d3e6;
+      position: relative;
+    }
+
+    .nav-item.active .nav-icon {
+      border-color: var(--primary);
+      background: linear-gradient(135deg, #eaf1ff, #fff);
+    }
+
+    .nav-icon.dashboard::before,
+    .nav-icon.credit::before,
+    .nav-icon.strategy::before,
+    .nav-icon.model::before,
+    .nav-icon.profile::before {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border-radius: 2px;
+      background: currentColor;
+      opacity: 0.55;
+    }
+
+    .main {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: 58px 1fr;
+    }
+
+    .topbar {
+      height: 58px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .top-left,
+    .top-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .hamburger,
+    .utility {
+      width: 28px;
+      height: 28px;
+      border: 1px solid #eef1f7;
+      border-radius: 6px;
+      background: #fff;
+      color: #94a3b8;
+      display: grid;
+      place-items: center;
+    }
+
+    .hamburger::before {
+      content: "";
+      width: 14px;
+      height: 2px;
+      background: currentColor;
+      box-shadow: 0 5px 0 currentColor, 0 -5px 0 currentColor;
+    }
+
+    .breadcrumb {
+      color: #8b97aa;
+      font-size: 13px;
+    }
+
+    .breadcrumb strong {
+      color: #344054;
+      font-weight: 600;
+    }
+
+    .search {
+      width: 210px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid #e8edf6;
+      background: #fbfcff;
+      color: #a1aab9;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 11px;
+      font-size: 12px;
+    }
+
+    .search kbd {
+      margin-left: auto;
+      color: #b4bdca;
+      border: 1px solid #edf0f5;
+      border-radius: 4px;
+      padding: 1px 5px;
+      background: #fff;
+      font-size: 11px;
+    }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f7d7c4, #765044);
+      box-shadow: inset 0 0 0 2px #fff;
+    }
+
+    .workspace {
+      padding: 16px 18px 24px;
+    }
+
+    .tab-strip {
+      height: 32px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .home-tab,
+    .page-tab {
+      height: 28px;
+      padding: 0 12px;
+      border: 1px solid #e7ecf5;
+      background: #fff;
+      border-radius: 5px;
+      color: #7b8798;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .page-tab {
+      color: var(--primary);
+      border-color: #dfe8ff;
+      background: #f8fbff;
+    }
+
+    .content-shell {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .metric-panel,
+    .page-panel {
+      background: var(--panel);
+      border: 1px solid #eef1f6;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .metric-panel {
+      min-height: calc(100vh - 120px);
+      padding: 16px 14px;
+    }
+
+    .metric-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin: 0 0 14px;
+    }
+
+    .tree {
+      color: #59657a;
+      line-height: 30px;
+      font-size: 13px;
+      user-select: none;
+    }
+
+    .tree ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .tree li {
+      position: relative;
+      padding-left: 18px;
+      white-space: nowrap;
+    }
+
+    .tree li::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 14px;
+      border-left: 4px solid #aeb8c7;
+      border-top: 4px solid transparent;
+      border-bottom: 4px solid transparent;
+      transform: rotate(90deg);
+      opacity: 0.75;
+    }
+
+    .tree .leaf::before {
+      width: 4px;
+      height: 4px;
+      border: 0;
+      background: #c5ceda;
+      border-radius: 50%;
+      transform: none;
+      top: 13px;
+    }
+
+    .tree .active > span {
+      color: #3f6fff;
+      background: #edf3ff;
+      border-radius: 5px;
+      font-weight: 600;
+    }
+
+    .tree span {
+      display: block;
+      padding: 0 8px;
+    }
+
+    .page-panel {
+      min-height: calc(100vh - 120px);
+      overflow: hidden;
+    }
+
+    .module-tabs {
+      height: 52px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #eef1f6;
+      background: #fff;
+    }
+
+    .module-tab {
+      border: 1px solid #e9eef7;
+      background: #fff;
+      color: #687589;
+      height: 32px;
+      padding: 0 14px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+
+    .module-tab.active {
+      color: var(--primary);
+      border-color: #d9e5ff;
+      background: var(--primary-soft);
+      font-weight: 600;
+    }
+
+    .page-view {
+      display: none;
+      padding: 16px;
+    }
+
+    .page-view.active {
+      display: block;
+    }
+
+    .filter-card {
+      background: #fff;
+      border: 1px solid #eef1f6;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .filter-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .form-field label {
+      display: block;
+      color: #667085;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .input,
+    .select,
+    .textarea {
+      width: 100%;
+      height: 34px;
+      border: 1px solid #e4e9f2;
+      border-radius: 5px;
+      background: #fff;
+      color: #344054;
+      padding: 0 10px;
+      outline: none;
+    }
+
+    .textarea {
+      min-height: 82px;
+      padding-top: 9px;
+      resize: none;
+    }
+
+    .input::placeholder,
+    .textarea::placeholder {
+      color: #b4becd;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn {
+      height: 34px;
+      padding: 0 14px;
+      border-radius: 5px;
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      color: #526173;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.18s ease;
+    }
+
+    .btn:hover {
+      border-color: #c9d7ef;
+      color: var(--primary);
+    }
+
+    .btn.primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 5px 12px rgba(79, 124, 255, 0.24);
+    }
+
+    .btn.danger {
+      background: var(--danger);
+      border-color: var(--danger);
+      color: #fff;
+    }
+
+    .btn.ghost-primary {
+      color: var(--primary);
+      background: var(--primary-soft);
+      border-color: #dfe8ff;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .toolbar-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 400;
+    }
+
+    .table-card {
+      border: 1px solid #eef1f6;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      height: 48px;
+      padding: 0 12px;
+      border-bottom: 1px solid #eef1f6;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      height: 42px;
+      background: #fbfcff;
+      color: #667085;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .checkbox {
+      width: 14px;
+      height: 14px;
+      border: 1px solid #dbe3ef;
+      border-radius: 3px;
+      display: inline-block;
+      background: #fff;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      height: 22px;
+      padding: 0 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: var(--primary);
+      background: var(--primary-soft);
+    }
+
+    .tag.green {
+      color: #12a06c;
+      background: #e9fbf4;
+    }
+
+    .tag.orange {
+      color: #d48806;
+      background: #fff7e6;
+    }
+
+    .tag.red {
+      color: #d93025;
+      background: #fff1f0;
+    }
+
+    .link {
+      color: var(--primary);
+      margin-right: 10px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .strategy-layout {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .section-card {
+      background: #fff;
+      border: 1px solid #eef1f6;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .metric-picker {
+      display: grid;
+      grid-template-columns: 190px 1fr;
+      gap: 12px;
+    }
+
+    .category-list {
+      border: 1px solid #edf1f7;
+      border-radius: 7px;
+      overflow: hidden;
+      background: #fbfcff;
+    }
+
+    .category {
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      border-bottom: 1px solid #edf1f7;
+      color: #667085;
+    }
+
+    .category:last-child {
+      border-bottom: 0;
+    }
+
+    .category.active {
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .category em {
+      font-style: normal;
+      color: #98a2b3;
+      font-size: 12px;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric-card {
+      border: 1px solid #edf1f7;
+      border-radius: 7px;
+      padding: 10px;
+      min-height: 84px;
+      position: relative;
+    }
+
+    .metric-card.checked {
+      border-color: #cbdcff;
+      background: #f8fbff;
+    }
+
+    .metric-card .checkbox {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+    }
+
+    .metric-card.checked .checkbox {
+      border-color: var(--primary);
+      background: var(--primary);
+    }
+
+    .metric-card.checked .checkbox::after {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 1px;
+      width: 4px;
+      height: 8px;
+      border: solid #fff;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    .metric-name {
+      font-weight: 600;
+      margin-bottom: 8px;
+      padding-right: 24px;
+    }
+
+    .metric-desc {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 18px;
+    }
+
+    .config-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .config-row {
+      display: grid;
+      grid-template-columns: minmax(130px, 1fr) 74px 74px 86px 24px;
+      gap: 8px;
+      align-items: center;
+      min-height: 42px;
+      padding: 8px;
+      border: 1px solid #edf1f7;
+      border-radius: 7px;
+      background: #fbfcff;
+    }
+
+    .config-row strong {
+      font-weight: 600;
+    }
+
+    .mini-input {
+      height: 30px;
+      width: 100%;
+      border: 1px solid #e4e9f2;
+      border-radius: 5px;
+      padding: 0 8px;
+      text-align: center;
+      background: #fff;
+    }
+
+    .delete-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 1px solid #ffd4d6;
+      color: var(--danger);
+      display: grid;
+      place-items: center;
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .summary-card {
+      border: 1px solid #edf1f7;
+      border-radius: 7px;
+      padding: 12px;
+      background: #fbfcff;
+    }
+
+    .summary-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .summary-card strong {
+      font-size: 20px;
+    }
+
+    .progress-line {
+      height: 7px;
+      border-radius: 99px;
+      background: #eef2f8;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-line i {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #4f7cff, #7aa2ff);
+    }
+
+    .model-layout {
+      display: grid;
+      grid-template-columns: 285px 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .card-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .score-model-card {
+      border: 1px solid #edf1f7;
+      border-radius: 8px;
+      padding: 13px;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .score-model-card.active {
+      border-color: #cbdcff;
+      background: #f8fbff;
+      box-shadow: inset 3px 0 0 var(--primary);
+    }
+
+    .score-model-card h4 {
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+
+    .score-model-card p {
+      margin: 0;
+      line-height: 20px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .score-table th,
+    .score-table td {
+      border: 1px solid #dce3ee;
+      height: 42px;
+    }
+
+    .score-table th {
+      background: #f6f8fc;
+      text-align: center;
+      color: #344054;
+    }
+
+    .score-table td {
+      text-align: center;
+      background: #fff;
+    }
+
+    .score-table .dimension {
+      width: 118px;
+      font-weight: 700;
+      background: #fbfcff;
+    }
+
+    .score-table .weight {
+      width: 82px;
+    }
+
+    .editable-cell {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 54px;
+      height: 26px;
+      padding: 0 8px;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      color: #344054;
+    }
+
+    .editable-cell:hover,
+    .editable-cell.active {
+      border-color: #cbdcff;
+      background: #f8fbff;
+      color: var(--primary);
+    }
+
+    .cell-actions {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .tiny-btn {
+      height: 24px;
+      border: 1px solid #e4e9f2;
+      background: #fff;
+      color: #667085;
+      border-radius: 4px;
+      padding: 0 8px;
+      font-size: 12px;
+    }
+
+    .profile-layout {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .company-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 1px solid #eef1f6;
+      padding-bottom: 14px;
+      margin-bottom: 14px;
+    }
+
+    .company-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .company-logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #4f7cff, #7aa2ff);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .company-title h2 {
+      margin: 0 0 7px;
+      font-size: 20px;
+    }
+
+    .company-meta {
+      display: flex;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .score-hero {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 20px;
+      align-items: center;
+      padding: 10px 0 4px;
+    }
+
+    .gauge {
+      width: 230px;
+      height: 230px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at center, #fff 0 57%, transparent 58%),
+        conic-gradient(#32c48d 0 78%, #e9eef6 78% 100%);
+      display: grid;
+      place-items: center;
+      margin: 0 auto;
+      position: relative;
+      box-shadow: inset 0 0 0 1px #eef1f6;
+    }
+
+    .gauge::after {
+      content: "";
+      position: absolute;
+      inset: 20px;
+      border-radius: 50%;
+      border: 1px solid #f1f4f9;
+    }
+
+    .gauge-content {
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .gauge-content span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .gauge-content strong {
+      display: block;
+      font-size: 54px;
+      line-height: 1.05;
+      color: #1f2a3d;
+    }
+
+    .grade {
+      display: inline-flex;
+      height: 28px;
+      min-width: 56px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      background: #e9fbf4;
+      color: #12a06c;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+
+    .risk-summary {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .risk-card {
+      border: 1px solid #edf1f7;
+      border-radius: 8px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .risk-card .value {
+      font-size: 24px;
+      font-weight: 800;
+      margin: 6px 0;
+    }
+
+    .risk-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 18px;
+      font-size: 12px;
+    }
+
+    .radar {
+      height: 220px;
+      position: relative;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .radar-grid {
+      width: 172px;
+      height: 172px;
+      position: relative;
+      background:
+        linear-gradient(45deg, transparent 49.5%, #e6ebf3 50%, transparent 50.5%),
+        linear-gradient(-45deg, transparent 49.5%, #e6ebf3 50%, transparent 50.5%),
+        linear-gradient(90deg, transparent 49.5%, #e6ebf3 50%, transparent 50.5%),
+        linear-gradient(0deg, transparent 49.5%, #e6ebf3 50%, transparent 50.5%);
+      border: 1px solid #e6ebf3;
+      border-radius: 50%;
+    }
+
+    .radar-grid::before,
+    .radar-grid::after {
+      content: "";
+      position: absolute;
+      inset: 28px;
+      border: 1px solid #e6ebf3;
+      border-radius: 50%;
+    }
+
+    .radar-grid::after {
+      inset: 56px;
+    }
+
+    .radar-shape {
+      position: absolute;
+      inset: 30px;
+      clip-path: polygon(50% 4%, 88% 26%, 78% 76%, 37% 92%, 12% 58%, 18% 20%);
+      background: rgba(79, 124, 255, 0.23);
+      border: 2px solid var(--primary);
+    }
+
+    .radar-label {
+      position: absolute;
+      color: #667085;
+      font-size: 12px;
+    }
+
+    .radar-label.l1 { top: 5px; left: 50%; transform: translateX(-50%); }
+    .radar-label.l2 { top: 54px; right: 18px; }
+    .radar-label.l3 { bottom: 34px; right: 22px; }
+    .radar-label.l4 { bottom: 8px; left: 48%; transform: translateX(-50%); }
+    .radar-label.l5 { bottom: 38px; left: 12px; }
+    .radar-label.l6 { top: 54px; left: 12px; }
+
+    .timeline {
+      display: grid;
+      gap: 12px;
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 70px 1fr;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .timeline-item time {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .timeline-body {
+      position: relative;
+      padding-left: 14px;
+      color: #526173;
+      line-height: 19px;
+    }
+
+    .timeline-body::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 5px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+
+    .factor-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .factor-item {
+      display: grid;
+      grid-template-columns: 1fr 70px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .factor-name {
+      color: #526173;
+      margin-bottom: 6px;
+    }
+
+    .bar {
+      height: 8px;
+      border-radius: 99px;
+      background: #eef2f8;
+      overflow: hidden;
+    }
+
+    .bar i {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #4f7cff, #84a9ff);
+    }
+
+    .factor-score {
+      text-align: right;
+      font-weight: 700;
+      color: #344054;
+    }
+
+    .pagination {
+      height: 44px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      border-top: 1px solid #eef1f6;
+      color: var(--muted);
+      background: #fff;
+    }
+
+    .page-num {
+      min-width: 26px;
+      height: 26px;
+      border: 1px solid #e4e9f2;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      color: #667085;
+    }
+
+    .page-num.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark">ISC</span>
+        <span>风险洞察平台</span>
+      </div>
+      <nav class="side-nav">
+        <div class="nav-item">
+          <span class="nav-icon dashboard"></span>
+          <span>仪表盘</span>
+        </div>
+        <div class="nav-group-title">信用管理</div>
+        <div class="nav-item active">
+          <span class="nav-icon credit"></span>
+          <span>风险指标</span>
+        </div>
+        <div class="nav-item">
+          <span class="nav-icon strategy"></span>
+          <span>策略配置</span>
+        </div>
+        <div class="nav-item">
+          <span class="nav-icon model"></span>
+          <span>模型管理</span>
+        </div>
+        <div class="nav-item">
+          <span class="nav-icon profile"></span>
+          <span>企业信用画像</span>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="top-left">
+          <button class="hamburger" aria-label="展开菜单"></button>
+          <div class="breadcrumb">信用管理 <span>/</span> <strong id="crumbTitle">策略配置</strong></div>
+        </div>
+        <div class="top-right">
+          <div class="search">搜索 <kbd>⌘ K</kbd></div>
+          <button class="utility" aria-label="全屏">□</button>
+          <button class="utility" aria-label="消息">●</button>
+          <button class="utility" aria-label="设置">◎</button>
+          <button class="utility" aria-label="夜间模式">◐</button>
+          <div class="avatar" title="产品经理"></div>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <div class="tab-strip">
+          <span class="home-tab">工作台</span>
+          <span class="page-tab" id="pageTab">策略配置 ×</span>
+        </div>
+
+        <div class="content-shell">
+          <aside class="metric-panel">
+            <h3 class="metric-title">风险指标目录</h3>
+            <div class="tree">
+              <ul>
+                <li><span>基础合规</span>
+                  <ul>
+                    <li class="leaf"><span>工商基础与司法</span></li>
+                    <li class="leaf"><span>证照资质</span></li>
+                    <li class="leaf"><span>行业匹配</span></li>
+                    <li class="leaf"><span>企业年限</span></li>
+                    <li class="leaf"><span>经营状态</span></li>
+                    <li class="leaf"><span>股权变更</span></li>
+                    <li class="leaf"><span>股权风险</span></li>
+                    <li class="leaf"><span>行政处罚</span></li>
+                    <li class="leaf"><span>司法涉诉</span></li>
+                    <li class="leaf"><span>科创能力</span></li>
+                  </ul>
+                </li>
+                <li class="active"><span>企业基本面</span>
+                  <ul>
+                    <li class="leaf"><span>人员情况</span></li>
+                    <li class="leaf"><span>经营变更</span></li>
+                    <li class="leaf"><span>资金情况</span></li>
+                    <li class="leaf"><span>关联信息</span></li>
+                    <li class="leaf"><span>融资情况</span></li>
+                    <li class="leaf"><span>行政行为</span></li>
+                    <li class="leaf"><span>企业严重违法失信情况</span></li>
+                    <li class="leaf"><span>企业限高情况</span></li>
+                    <li class="leaf"><span>企业涉诉情况</span></li>
+                    <li class="leaf"><span>科技竞争力</span></li>
+                  </ul>
+                </li>
+                <li><span>税务社保公积金</span></li>
+                <li><span>四流合一</span></li>
+                <li><span>物流货运</span></li>
+              </ul>
+            </div>
+          </aside>
+
+          <section class="page-panel">
+            <div class="module-tabs">
+              <button class="module-tab active" data-page="strategy">策略配置</button>
+              <button class="module-tab" data-page="model">模型管理</button>
+              <button class="module-tab" data-page="profile">企业信用画像</button>
+            </div>
+
+            <div class="page-view active" id="strategy">
+              <div class="filter-card">
+                <div class="filter-row">
+                  <div class="form-field">
+                    <label>策略名称</label>
+                    <input class="input" value="多式联运企业准入策略" />
+                  </div>
+                  <div class="form-field">
+                    <label>适用场景</label>
+                    <select class="select">
+                      <option>承运商准入</option>
+                      <option>授信评估</option>
+                      <option>运单履约监控</option>
+                    </select>
+                  </div>
+                  <div class="form-field">
+                    <label>策略状态</label>
+                    <select class="select">
+                      <option>启用</option>
+                      <option>停用</option>
+                      <option>草稿</option>
+                    </select>
+                  </div>
+                  <div class="form-field">
+                    <label>指标分类</label>
+                    <select class="select">
+                      <option>企业基本面 / 税务社保 / 四流合一</option>
+                    </select>
+                  </div>
+                  <div class="actions">
+                    <button class="btn">重置</button>
+                    <button class="btn primary">保存策略</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="strategy-layout">
+                <div>
+                  <div class="section-card">
+                    <div class="section-head">
+                      <div>
+                        <div class="section-title">指标筛选</div>
+                        <div class="hint">从风险指标目录中选择指标，用于形成可复用策略集</div>
+                      </div>
+                      <button class="btn ghost-primary">批量加入</button>
+                    </div>
+                    <div class="metric-picker">
+                      <div class="category-list">
+                        <div class="category active">企业基本面 <em>12</em></div>
+                        <div class="category">工商司法风险 <em>8</em></div>
+                        <div class="category">企业税务信息 <em>9</em></div>
+                        <div class="category">企业经营信息 <em>7</em></div>
+                        <div class="category">企业社会信用 <em>6</em></div>
+                        <div class="category">物流履约信息 <em>5</em></div>
+                      </div>
+                      <div class="metric-grid">
+                        <div class="metric-card checked">
+                          <span class="checkbox"></span>
+                          <div class="metric-name">企业成立年限</div>
+                          <div class="metric-desc">基于工商注册日期评估企业稳定性，支持区间打分。</div>
+                        </div>
+                        <div class="metric-card checked">
+                          <span class="checkbox"></span>
+                          <div class="metric-name">企业登记状态</div>
+                          <div class="metric-desc">判断企业是否存续、迁出、注销或异常经营。</div>
+                        </div>
+                        <div class="metric-card checked">
+                          <span class="checkbox"></span>
+                          <div class="metric-name">近3年法院公告情况</div>
+                          <div class="metric-desc">统计近三年法院公告次数与风险等级。</div>
+                        </div>
+                        <div class="metric-card">
+                          <span class="checkbox"></span>
+                          <div class="metric-name">近3年被执行人信息</div>
+                          <div class="metric-desc">识别企业被执行信息数量、金额与时间。</div>
+                        </div>
+                        <div class="metric-card checked">
+                          <span class="checkbox"></span>
+                          <div class="metric-name">近12个月纳税等级</div>
+                          <div class="metric-desc">引用纳税信用等级作为企业履约稳定性依据。</div>
+                        </div>
+                        <div class="metric-card">
+                          <span class="checkbox"></span>
+                          <div class="metric-name">近6个月交易金额增长率</div>
+                          <div class="metric-desc">评估平台交易活跃度和业务增长趋势。</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="table-card">
+                    <div class="toolbar" style="padding: 12px 14px 2px;">
+                      <div class="toolbar-title">策略集列表 <span class="hint">沉淀不同业务场景下的风控策略</span></div>
+                      <div class="actions">
+                        <button class="btn primary">+ 新增策略</button>
+                        <button class="btn">复制策略</button>
+                        <button class="btn danger">停用</button>
+                      </div>
+                    </div>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th style="width: 42px;"><span class="checkbox"></span></th>
+                          <th>策略名称</th>
+                          <th>适用场景</th>
+                          <th>指标数</th>
+                          <th>总分</th>
+                          <th>状态</th>
+                          <th>更新时间</th>
+                          <th>操作</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><span class="checkbox"></span></td>
+                          <td>多式联运企业准入策略</td>
+                          <td>承运商准入</td>
+                          <td>16</td>
+                          <td>1000</td>
+                          <td><span class="tag green">启用</span></td>
+                          <td>2026-06-15 09:42</td>
+                          <td><span class="link">编辑</span><span class="link">试算</span><span class="link">发布</span></td>
+                        </tr>
+                        <tr>
+                          <td><span class="checkbox"></span></td>
+                          <td>运单履约异常监控策略</td>
+                          <td>履约监控</td>
+                          <td>11</td>
+                          <td>100</td>
+                          <td><span class="tag orange">草稿</span></td>
+                          <td>2026-06-12 17:20</td>
+                          <td><span class="link">编辑</span><span class="link">试算</span><span class="link">删除</span></td>
+                        </tr>
+                        <tr>
+                          <td><span class="checkbox"></span></td>
+                          <td>企业行为评分策略</td>
+                          <td>行为评估</td>
+                          <td>21</td>
+                          <td>1000</td>
+                          <td><span class="tag green">启用</span></td>
+                          <td>2026-06-08 14:06</td>
+                          <td><span class="link">编辑</span><span class="link">试算</span><span class="link">停用</span></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="section-card">
+                    <div class="section-head">
+                      <div>
+                        <div class="section-title">已选指标权重与分数</div>
+                        <div class="hint">字段权重及分数支持直接配置</div>
+                      </div>
+                      <span class="tag">权重合计 100%</span>
+                    </div>
+                    <div class="summary-grid">
+                      <div class="summary-card">
+                        <span>已选指标</span>
+                        <strong>6</strong>
+                      </div>
+                      <div class="summary-card">
+                        <span>策略总分</span>
+                        <strong>1000</strong>
+                      </div>
+                      <div class="summary-card">
+                        <span>命中阈值</span>
+                        <strong>720</strong>
+                      </div>
+                    </div>
+                    <div class="config-list">
+                      <div class="config-row">
+                        <strong>企业成立年限</strong>
+                        <input class="mini-input" value="10%" />
+                        <input class="mini-input" value="100" />
+                        <span class="tag green">正向</span>
+                        <span class="delete-dot">×</span>
+                      </div>
+                      <div class="config-row">
+                        <strong>企业登记状态</strong>
+                        <input class="mini-input" value="15%" />
+                        <input class="mini-input" value="150" />
+                        <span class="tag green">准入</span>
+                        <span class="delete-dot">×</span>
+                      </div>
+                      <div class="config-row">
+                        <strong>近3年法院公告</strong>
+                        <input class="mini-input" value="18%" />
+                        <input class="mini-input" value="180" />
+                        <span class="tag red">负向</span>
+                        <span class="delete-dot">×</span>
+                      </div>
+                      <div class="config-row">
+                        <strong>近12个月纳税等级</strong>
+                        <input class="mini-input" value="22%" />
+                        <input class="mini-input" value="220" />
+                        <span class="tag green">正向</span>
+                        <span class="delete-dot">×</span>
+                      </div>
+                      <div class="config-row">
+                        <strong>交易金额增长率</strong>
+                        <input class="mini-input" value="20%" />
+                        <input class="mini-input" value="200" />
+                        <span class="tag green">正向</span>
+                        <span class="delete-dot">×</span>
+                      </div>
+                      <div class="config-row">
+                        <strong>运单履约及时率</strong>
+                        <input class="mini-input" value="15%" />
+                        <input class="mini-input" value="150" />
+                        <span class="tag green">正向</span>
+                        <span class="delete-dot">×</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="section-card">
+                    <div class="section-head">
+                      <div class="section-title">策略试算</div>
+                      <button class="btn primary">立即试算</button>
+                    </div>
+                    <div class="form-field" style="margin-bottom: 10px;">
+                      <label>企业名称 / 统一社会信用代码</label>
+                      <input class="input" value="上海安达多式联运有限公司" />
+                    </div>
+                    <div class="summary-card">
+                      <span>预计信用得分</span>
+                      <strong>786</strong>
+                      <div class="progress-line"><i style="width: 78.6%;"></i></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="page-view" id="model">
+              <div class="filter-card">
+                <div class="filter-row">
+                  <div class="form-field">
+                    <label>模型名称</label>
+                    <input class="input" value="多式联运企业信用评分卡 V1.0" />
+                  </div>
+                  <div class="form-field">
+                    <label>评分策略集</label>
+                    <select class="select">
+                      <option>企业行为评分策略</option>
+                      <option>承运商准入策略</option>
+                    </select>
+                  </div>
+                  <div class="form-field">
+                    <label>模型状态</label>
+                    <select class="select">
+                      <option>已发布</option>
+                      <option>配置中</option>
+                    </select>
+                  </div>
+                  <div class="form-field">
+                    <label>版本说明</label>
+                    <input class="input" value="支持指标、权重、分值在线配置" />
+                  </div>
+                  <div class="actions">
+                    <button class="btn">导入指标</button>
+                    <button class="btn primary">发布模型</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="model-layout">
+                <div class="section-card">
+                  <div class="section-head">
+                    <div class="section-title">评分卡模型</div>
+                    <button class="btn ghost-primary">+ 新建</button>
+                  </div>
+                  <div class="card-list">
+                    <div class="score-model-card active">
+                      <h4>多式联运企业信用评分卡 V1.0</h4>
+                      <p>适用于承运企业准入、授信额度评估及日常监测。</p>
+                      <p><span class="tag green">已发布</span> 指标 18 个</p>
+                    </div>
+                    <div class="score-model-card">
+                      <h4>物流履约风险评分卡</h4>
+                      <p>关注运单执行、异常签收、到货及时率等履约行为。</p>
+                      <p><span class="tag orange">配置中</span> 指标 11 个</p>
+                    </div>
+                    <div class="score-model-card">
+                      <h4>税票资金一致性模型</h4>
+                      <p>校验合同、运单、资金流、发票的四流一致性风险。</p>
+                      <p><span class="tag">试运行</span> 指标 9 个</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="toolbar">
+                    <div class="toolbar-title">企业信用评分卡配置 <span class="hint">指标名称、分数、字段权重、大类权重均可编辑</span></div>
+                    <div class="actions">
+                      <button class="btn">新增维度</button>
+                      <button class="btn">新增指标</button>
+                      <button class="btn primary">保存配置</button>
+                    </div>
+                  </div>
+                  <div class="table-card">
+                    <table class="score-table">
+                      <thead>
+                        <tr>
+                          <th>维度</th>
+                          <th>大类权重</th>
+                          <th>大类分值</th>
+                          <th>指标名称</th>
+                          <th>字段权重</th>
+                          <th>取值区间</th>
+                          <th>分组分值</th>
+                          <th>Max</th>
+                          <th>Min</th>
+                          <th>操作</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td class="dimension" rowspan="3">基本信息</td>
+                          <td rowspan="3"><span class="editable-cell active">10%</span></td>
+                          <td rowspan="3"><span class="editable-cell">100</span></td>
+                          <td>企业成立年限</td>
+                          <td><span class="editable-cell">40%</span></td>
+                          <td>[4,5]</td>
+                          <td><span class="editable-cell">30</span></td>
+                          <td rowspan="3">40</td>
+                          <td rowspan="3">0</td>
+                          <td class="cell-actions"><button class="tiny-btn">编辑</button><button class="tiny-btn">新增区间</button></td>
+                        </tr>
+                        <tr>
+                          <td>法人年龄</td>
+                          <td><span class="editable-cell">20%</span></td>
+                          <td>(25,40]</td>
+                          <td><span class="editable-cell">20</span></td>
+                          <td class="cell-actions"><button class="tiny-btn">编辑</button><button class="tiny-btn">删除</button></td>
+                        </tr>
+                        <tr>
+                          <td>法人持股比例</td>
+                          <td><span class="editable-cell">40%</span></td>
+                          <td>(75%,100%]</td>
+                          <td><span class="editable-cell">40</span></td>
+                          <td class="cell-actions"><button class="tiny-btn">编辑</button><button class="tiny-btn">删除</button></td>
+                        </tr>
+                        <tr>
+                          <td class="dimension" rowspan="4">企业工商司法风险</td>
+                          <td rowspan="4"><span class="editable-cell">20%</span></td>
+                          <td rowspan="4"><span class="editable-cell">200</span></td>
+                          <td>企业登记状态</td>
+                          <td><span class="editable-cell">20%</span></td>
+                          <td>存续 / 在业</td>
+                          <td><span class="editable-cell">40</span></td>
+                          <td>40</td>
+                          <td>0</td>
+                          <td class="cell-actions"><button class="tiny-btn">编辑</button><button class="tiny-btn">新增区间</button></td>
+                        </tr>
+                        <tr>
+                          <td>近3年法院公告情况</td>
+                          <td><span class="editable-cell">20%</span></td>
+                          <td>3年内无公告</td>
+                          <td><span class="editable-cell">40</span></td>
+                          <td>40</td>
+                          <td>0</td>
+                          <td class="cell-actions"><button class="tiny-btn">编辑</button><button class="tiny-btn">删除</button></td>
+                        </tr>
+                        <tr>
+                          <td>近3年法院裁判文书情况</td>
+                          <td><span class="editable-cell">30%</span></td>
+                          <td>3年内无涉诉</td>
+                          <td><span class="editable-cell">60</span></td>
+                          <td>60</td>
+                          <td>0</td>
+                          <td class="cell-actions"><button class="tiny-btn">编辑</button><button class="tiny-btn">删除</button></td>
+                        </tr>
+                        <tr>
+                          <td>近3年被执行人信息</td>
+                          <td><span class="editable-cell">30%</span></td>
+                          <td>3年内无被执行</td>
+                          <td><span class="editable-cell">60</span></td>
+                          <td>60</td>
+                          <td>0</td>
+                          <td class="cell-actions"><button class="tiny-btn">编辑</button><button class="tiny-btn">删除</button></td>
+                        </tr>
+                        <tr>
+                          <td class="dimension" rowspan="4">企业税务信息</td>
+                          <td rowspan="4"><span class="editable-cell">20%</span></td>
+                          <td rowspan="4"><span class="editable-cell">200</span></td>
+                          <td>近6个月应纳税同比</td>
+                          <td><span class="editable-cell">25%</span></td>
+                          <td>[30%, +∞)</td>
+                          <td><span class="editable-cell">50</span></td>
+                          <td>50</td>
+                          <td>0</td>
+                          <td class="cell-actions"><button class="tiny-btn">编辑</button><button class="tiny-btn">新增区间</button></td>
+                        </tr>
+                        <tr>
+                          <td>近12个月出现滞纳金月份数</td>
+                          <td><span class="editable-cell">25%</span></td>
+                          <td>0</td>
+                          <td><span class="editable-cell">50</span></td>
+                          <td>50</td>
+                          <td>0</td>
+                          <td class="cell-actions"><button class="tiny-btn">编辑</button><button class="tiny-btn">删除</button></td>
+                        </tr>
+                        <tr>
+                          <td>近一年纳税信用等级</td>
+                          <td><span class="editable-cell">25%</span></td>
+                          <td>A</td>
+                          <td><span class="editable-cell">50</span></td>
+                          <td>50</td>
+                          <td>0</td>
+                          <td class="cell-actions"><button class="tiny-btn">编辑</button><button class="tiny-btn">删除</button></td>
+                        </tr>
+                        <tr>
+                          <td>近12个月违法违章次数</td>
+                          <td><span class="editable-cell">25%</span></td>
+                          <td>空值</td>
+                          <td><span class="editable-cell">25</span></td>
+                          <td>50</td>
+                          <td>0</td>
+                          <td class="cell-actions"><button class="tiny-btn">编辑</button><button class="tiny-btn">删除</button></td>
+                        </tr>
+                        <tr>
+                          <td class="dimension" rowspan="3">企业经营信息</td>
+                          <td rowspan="3"><span class="editable-cell">25%</span></td>
+                          <td rowspan="3"><span class="editable-cell">300</span></td>
+                          <td>近12个月进销额差额比例</td>
+                          <td><span class="editable-cell">20%</span></td>
+                          <td>[20%, +∞)</td>
+                          <td><span class="editable-cell">60</span></td>
+                          <td>60</td>
+                          <td>0</td>
+                          <td class="cell-actions"><button class="tiny-btn">编辑</button><button class="tiny-btn">新增区间</button></td>
+                        </tr>
+                        <tr>
+                          <td>近6个月销项销售额汇总</td>
+                          <td><span class="editable-cell">30%</span></td>
+                          <td>[7500000, +∞)</td>
+                          <td><span class="editable-cell">90</span></td>
+                          <td>90</td>
+                          <td>0</td>
+                          <td class="cell-actions"><button class="tiny-btn">编辑</button><button class="tiny-btn">删除</button></td>
+                        </tr>
+                        <tr>
+                          <td>近6个月交易金额同比增长率</td>
+                          <td><span class="editable-cell">30%</span></td>
+                          <td>[30%, +∞)</td>
+                          <td><span class="editable-cell">90</span></td>
+                          <td>90</td>
+                          <td>0</td>
+                          <td class="cell-actions"><button class="tiny-btn">编辑</button><button class="tiny-btn">删除</button></td>
+                        </tr>
+                        <tr>
+                          <td class="dimension" rowspan="2">企业社会信用信息</td>
+                          <td rowspan="2"><span class="editable-cell">25%</span></td>
+                          <td rowspan="2"><span class="editable-cell">200</span></td>
+                          <td>社保开户时长</td>
+                          <td><span class="editable-cell">30%</span></td>
+                          <td>[61,91]</td>
+                          <td><span class="editable-cell">45</span></td>
+                          <td>60</td>
+                          <td>0</td>
+                          <td class="cell-actions"><button class="tiny-btn">编辑</button><button class="tiny-btn">新增区间</button></td>
+                        </tr>
+                        <tr>
+                          <td>公积金开户时长</td>
+                          <td><span class="editable-cell">30%</span></td>
+                          <td>[37,72]</td>
+                          <td><span class="editable-cell">45</span></td>
+                          <td>60</td>
+                          <td>0</td>
+                          <td class="cell-actions"><button class="tiny-btn">编辑</button><button class="tiny-btn">删除</button></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <div class="pagination">
+                      <span>共 18 条</span>
+                      <span class="page-num active">1</span>
+                      <span class="page-num">2</span>
+                      <span>10 条/页</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="page-view" id="profile">
+              <div class="filter-card">
+                <div class="filter-row">
+                  <div class="form-field">
+                    <label>企业名称</label>
+                    <input class="input" value="上海安达多式联运有限公司" />
+                  </div>
+                  <div class="form-field">
+                    <label>统一社会信用代码</label>
+                    <input class="input" value="91310000MA1K89X888" />
+                  </div>
+                  <div class="form-field">
+                    <label>评分模型</label>
+                    <select class="select">
+                      <option>多式联运企业信用评分卡 V1.0</option>
+                    </select>
+                  </div>
+                  <div class="form-field">
+                    <label>评估日期</label>
+                    <input class="input" value="2026-06-15" />
+                  </div>
+                  <div class="actions">
+                    <button class="btn">重置</button>
+                    <button class="btn primary">生成画像</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="profile-layout">
+                <div>
+                  <div class="section-card">
+                    <div class="company-head">
+                      <div class="company-title">
+                        <div class="company-logo">安</div>
+                        <div>
+                          <h2>上海安达多式联运有限公司</h2>
+                          <div class="company-meta">
+                            <span>道路运输</span>
+                            <span>存续</span>
+                            <span>上海市浦东新区</span>
+                            <span>平台合作 26 个月</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="actions">
+                        <button class="btn">下载报告</button>
+                        <button class="btn ghost-primary">加入监控</button>
+                      </div>
+                    </div>
+                    <div class="score-hero">
+                      <div class="gauge">
+                        <div class="gauge-content">
+                          <span>综合信用得分</span>
+                          <strong>786</strong>
+                          <div class="grade">A 级</div>
+                        </div>
+                      </div>
+                      <div class="risk-summary">
+                        <div class="risk-card">
+                          <span class="hint">信用结论</span>
+                          <div class="value" style="color: #12a06c;">低风险</div>
+                          <p>企业经营稳定，税务与履约表现良好，可进入标准准入流程。</p>
+                        </div>
+                        <div class="risk-card">
+                          <span class="hint">建议额度</span>
+                          <div class="value">¥ 820 万</div>
+                          <p>结合交易增长和纳税等级，建议维持中高授信额度。</p>
+                        </div>
+                        <div class="risk-card">
+                          <span class="hint">风险预警</span>
+                          <div class="value" style="color: #faad14;">2 项</div>
+                          <p>近 12 个月出现滞纳金 1 次，股权结构近期发生小幅变更。</p>
+                        </div>
+                        <div class="risk-card">
+                          <span class="hint">评分排名</span>
+                          <div class="value">前 18%</div>
+                          <p>高于平台同类型承运企业平均信用得分 63 分。</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="section-card">
+                    <div class="section-head">
+                      <div class="section-title">维度得分贡献</div>
+                      <span class="hint">按模型权重折算后的分值</span>
+                    </div>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>维度</th>
+                          <th>权重</th>
+                          <th>满分</th>
+                          <th>企业得分</th>
+                          <th>等级</th>
+                          <th>关键解释</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>基本信息</td>
+                          <td>10%</td>
+                          <td>100</td>
+                          <td>82</td>
+                          <td><span class="tag green">优秀</span></td>
+                          <td>成立 5 年，法人持股比例稳定。</td>
+                        </tr>
+                        <tr>
+                          <td>企业工商司法风险</td>
+                          <td>20%</td>
+                          <td>200</td>
+                          <td>164</td>
+                          <td><span class="tag green">良好</span></td>
+                          <td>无失信被执行，近 3 年涉诉较少。</td>
+                        </tr>
+                        <tr>
+                          <td>企业税务信息</td>
+                          <td>20%</td>
+                          <td>200</td>
+                          <td>151</td>
+                          <td><span class="tag orange">关注</span></td>
+                          <td>纳税等级 A，存在一次滞纳金记录。</td>
+                        </tr>
+                        <tr>
+                          <td>企业经营信息</td>
+                          <td>25%</td>
+                          <td>300</td>
+                          <td>236</td>
+                          <td><span class="tag green">优秀</span></td>
+                          <td>平台交易金额同比增长 32%。</td>
+                        </tr>
+                        <tr>
+                          <td>企业社会信用信息</td>
+                          <td>25%</td>
+                          <td>200</td>
+                          <td>153</td>
+                          <td><span class="tag green">良好</span></td>
+                          <td>社保、公积金连续缴纳，人员结构稳定。</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="section-card">
+                    <div class="section-head">
+                      <div class="section-title">信用画像雷达</div>
+                      <span class="tag green">A 级</span>
+                    </div>
+                    <div class="radar">
+                      <div class="radar-label l1">合规</div>
+                      <div class="radar-label l2">税务</div>
+                      <div class="radar-label l3">经营</div>
+                      <div class="radar-label l4">履约</div>
+                      <div class="radar-label l5">司法</div>
+                      <div class="radar-label l6">社保</div>
+                      <div class="radar-grid">
+                        <div class="radar-shape"></div>
+                      </div>
+                    </div>
+                    <div class="factor-list">
+                      <div class="factor-item">
+                        <div>
+                          <div class="factor-name">合规稳定性</div>
+                          <div class="bar"><i style="width: 88%;"></i></div>
+                        </div>
+                        <div class="factor-score">88</div>
+                      </div>
+                      <div class="factor-item">
+                        <div>
+                          <div class="factor-name">税务健康度</div>
+                          <div class="bar"><i style="width: 76%;"></i></div>
+                        </div>
+                        <div class="factor-score">76</div>
+                      </div>
+                      <div class="factor-item">
+                        <div>
+                          <div class="factor-name">经营活跃度</div>
+                          <div class="bar"><i style="width: 84%;"></i></div>
+                        </div>
+                        <div class="factor-score">84</div>
+                      </div>
+                      <div class="factor-item">
+                        <div>
+                          <div class="factor-name">履约可信度</div>
+                          <div class="bar"><i style="width: 91%;"></i></div>
+                        </div>
+                        <div class="factor-score">91</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="section-card">
+                    <div class="section-head">
+                      <div class="section-title">风险事件时间线</div>
+                      <button class="btn">查看全部</button>
+                    </div>
+                    <div class="timeline">
+                      <div class="timeline-item">
+                        <time>06-15</time>
+                        <div class="timeline-body">模型自动评分完成，综合得分 786，信用等级 A。</div>
+                      </div>
+                      <div class="timeline-item">
+                        <time>06-02</time>
+                        <div class="timeline-body">平台交易金额连续三个月增长，正向贡献 24 分。</div>
+                      </div>
+                      <div class="timeline-item">
+                        <time>05-21</time>
+                        <div class="timeline-body">检测到一次税务滞纳金记录，触发关注项。</div>
+                      </div>
+                      <div class="timeline-item">
+                        <time>04-18</time>
+                        <div class="timeline-body">企业股东占比发生小幅变更，未触发重大预警。</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const tabs = document.querySelectorAll(".module-tab");
+    const views = document.querySelectorAll(".page-view");
+    const pageTab = document.getElementById("pageTab");
+    const crumbTitle = document.getElementById("crumbTitle");
+    const titles = {
+      strategy: "策略配置",
+      model: "模型管理",
+      profile: "企业信用画像"
+    };
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const page = tab.dataset.page;
+        tabs.forEach((item) => item.classList.remove("active"));
+        views.forEach((view) => view.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById(page).classList.add("active");
+        pageTab.textContent = `${titles[page]} ×`;
+        crumbTitle.textContent = titles[page];
+      });
+    });
+  </script>
+</body>
+</html>
